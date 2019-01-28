@@ -55,7 +55,7 @@ def mirror(name):
 def create_show():
     data = request.form
     if (data['name'] is None) or (data['episodes_seen'] is None):
-        return create_response(status=422, message="Parameters are missing. You need name and episodes_seen.")
+        return create_response(status=422, message="name and/or episodes_seen are missing.")
     show = db.create('shows', data)
     return create_response({'shows': show}, status = 201)
 
@@ -94,11 +94,24 @@ def get_episodes():
 @app.route("/shows/<id>", methods=['PUT'])
 def get_show_update(id):
     if db.getById('shows', int(id)) is None:
+        print("update: NOPE\n")
         return create_response(status=404, message="No show with this id exists")
 
-    data = request.form
-    if name is not None:
-        updateById('shows', int(id), data)
+    data = request.get_json()
+    if data is  None:
+        print("update: no data")
+        return create_response(status=404, message="No data")
+
+    name = request.args.get('name')
+    episodes_seen = request.args.get('episodes_seen')
+    payload = {}
+    if name is None:
+        payload = {'episodes_seen': episodes_seen}
+    else:
+        payload = {'name': name}
+
+    new_data = db.updateById('shows', int(id), data)
+    
     return create_response({'shows': db.getById(int(id))})
 
 """
