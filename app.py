@@ -78,6 +78,22 @@ def get_min_episodes(episodes):
         return create_response(status=404, message="No show with this number of episodes exists")
     return create_response({'shows': episodes_seen})
 
+@app.route("/shows")
+def get_episodes():
+    episodes = int(request.args.get('minEpisodes'))
+    episodes_seen = db.getByEpisodes('shows', (episodes))
+    if episodes_seen is None:
+        return create_response(status=404, message="No show with this number of episodes exists")
+    return create_response({'shows': episodes_seen})
+
+@app.route("/shows", methods=['POST'])
+def create_show(id):
+    data = request.form
+    if (data['name'] is None) or (data['episodes_seen'] is None):
+        return create_response(status=422, message="Parameters are missing. You need name and episodes_seen.")
+    show = db.create('shows', data)
+    return create_response({'shows': show}, status = 201)
+
 """
 ~~~~~~~~~~~~ END API ~~~~~~~~~~~~
 """
