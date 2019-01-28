@@ -51,6 +51,21 @@ def mirror(name):
     data = {"name": name}
     return create_response(data)
 
+@app.route("/shows", methods=['POST'])
+def create_show():
+    data = request.form
+    if (data['name'] is None) or (data['episodes_seen'] is None):
+        return create_response(status=422, message="Parameters are missing. You need name and episodes_seen.")
+    show = db.create('shows', data)
+    return create_response({'shows': show}, status = 201)
+
+@app.route("/shows/minEpisodes/<episodes>", methods=['GET'])
+def get_min_episodes(episodes):
+    episodes_seen = db.getByEpisodes('shows', int(episodes))
+    if episodes_seen is None:
+        return create_response(status=404, message="No show with this number of episodes exists")
+    return create_response({'shows': episodes_seen})
+
 @app.route("/shows", methods=['GET'])
 def get_all_shows():
     return create_response({"shows": db.get('shows')})
@@ -61,9 +76,30 @@ def delete_show(id):
         return create_response(status=404, message="No show with this id exists")
     db.deleteById('shows', int(id))
     return create_response(message="Show deleted")
+    
+@app.route("/shows/<id>", methods=['GET'])
+def get_show(id):
+    if db.getById('shows', int(id)) is None:
+        return create_response(status=404, message="No show with this id exists")
+    return create_response({'show': db.getById('shows', int(id)) })
 
+@app.route('/shows/')
+def get_episodes():
+    episodes = (request.args.get('minEpisodes',''))
+    episodes_seen = db.getByEpisodes('shows', int(episodes))
+    if episodes_seen is None:
+        return create_response(status=404, message="No show with this number of episodes exists")
+    return create_response({'shows': episodes_seen})
 
-# TODO: Implement the rest of the API here!
+@app.route("/shows/<id>", methods=['PUT'])
+def get_show_update(id):
+    if db.getById('shows', int(id)) is None:
+        return create_response(status=404, message="No show with this id exists")
+
+    data = request.form
+    if name is not None:
+        updateById('shows', int(id), data)
+    return create_response({'shows': db.getById(int(id))})
 
 """
 ~~~~~~~~~~~~ END API ~~~~~~~~~~~~
